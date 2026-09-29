@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Unfinalized</title>
+  <meta name="description" content="A parkour climb up a tower built from live Ethereum mainnet transactions.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js" } }
+  </script>
+</head>
+<body>
+  <canvas id="scene" aria-label="The tower"></canvas>
+
+  <section id="title" class="sheet" aria-labelledby="title-h">
+    <h1 id="title-h">Unfinalized</h1>
+    <p class="lede">Every stone in this tower is a real Ethereum transaction, stacked in the order it landed on mainnet. A new block arrives about every 12 seconds. Climb to the newest one before twelve confirmations close over you.</p>
+
+    <table class="ledger">
+      <caption>What the stones are</caption>
+      <tbody>
+        <tr><td><span class="sw sw-transfer" aria-hidden="true"></span></td><th scope="row">ETH transfer</th><td>Wider the more ETH moved</td></tr>
+        <tr><td><span class="sw sw-call" aria-hidden="true"></span></td><th scope="row">Contract call</th><td>Small and grey</td></tr>
+        <tr><td><span class="sw sw-spring" aria-hidden="true"></span></td><th scope="row">Contract deployment</th><td>Throws you upward</td></tr>
+        <tr><td><span class="sw sw-blob" aria-hidden="true"></span></td><th scope="row">Blob transaction</th><td>Slides back and forth</td></tr>
+        <tr><td><span class="sw sw-slab" aria-hidden="true"></span></td><th scope="row">Block</th><td>A landing with its number cut in. The newest one is orange.</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Full blocks pack their stones close together. Quiet blocks leave long gaps. The black floor is the 12-confirmation line: it sits twelve blocks under the newest block and rises every time one lands.</p>
+
+    <dl class="keys">
+      <div><dt>Move</dt><dd>WASD or arrows</dd></div>
+      <div><dt>Jump</dt><dd>Space, hold for height</dd></div>
+      <div><dt>Dash</dt><dd>Shift or right click, once per jump</dd></div>
+      <div><dt>Look</dt><dd>Mouse</dd></div>
+      <div><dt>Pause</dt><dd>Esc</dd></div>
+      <div><dt>Sound</dt><dd>M</dd></div>
+    </dl>
+
+    <p id="status" class="status" role="status" aria-live="polite">Reading Ethereum mainnet…</p>
+    <div id="error-actions" class="actions" hidden>
+      <button id="retry" type="button">Try mainnet again</button>
+      <button id="synthetic" type="button" class="ghost">Play on a synthetic chain</button>
+    </div>
+    <div id="start-actions" class="actions">
+      <button id="start" type="button" disabled>Start 9 blocks behind the head</button>
+      <button id="connect" type="button" class="ghost">Connect wallet</button>
+    </div>
+    <p id="wallet-note" class="small"></p>
+
+    <section class="board" aria-labelledby="board-h">
+      <div class="board-head">
+        <h2 id="board-h">Fastest climbs</h2>
+        <button id="board-refresh" type="button" class="ghost small-btn" hidden>Refresh</button>
+      </div>
+      <p id="board-status" class="small" role="status" aria-live="polite">Loading the board…</p>
+      <table id="board-table" class="ledger" hidden>
+        <thead><tr><th scope="col">#</th><th scope="col">Wallet</th><th scope="col">Time</th><th scope="col">Caught</th></tr></thead>
+        <tbody id="board-rows"></tbody>
+      </table>
+      <p id="board-where" class="small" hidden></p>
+    </section>
+  </section>
+
+  <div id="hud" hidden>
+    <div class="panel hud-where">
+      <p class="label">Standing on</p>
+      <p id="where" class="where">Nothing yet</p>
+      <p id="where-detail" class="mono small"></p>
+    </div>
+    <div class="panel hud-gap">
+      <p id="behind" class="big">9</p>
+      <p id="behind-label" class="label">blocks behind the head</p>
+      <p id="line-info" class="mono small"></p>
+    </div>
+    <div class="hud-bar">
+      <span id="dash" class="chip">Dash ready</span>
+      <span id="clock" class="chip mono">0:00.0</span>
+      <span id="feed" class="chip mono">Live mainnet</span>
+      <button id="mute" type="button" class="chip-btn" aria-pressed="false">Sound on</button>
+      <button id="pause-btn" type="button" class="chip-btn">Pause</button>
+    </div>
+  </div>
+
+  <div id="touch" hidden>
+    <div id="stick-zone"><div id="stick" aria-hidden="true"><div id="knob"></div></div></div>
+    <div id="look-zone"></div>
+    <button id="t-dash" type="button">Dash</button>
+    <button id="t-jump" type="button">Jump</button>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <div id="pause" class="overlay" role="dialog" aria-modal="true" aria-labelledby="pause-h" hidden>
+    <div class="sheet small-sheet">
+      <h2 id="pause-h">Paused</h2>
+      <p class="note">The chain doesn't pause. Blocks keep landing and the line keeps rising while you're here.</p>
+      <p id="pause-hint" class="small" hidden>Click the scene to capture the mouse again.</p>
+      <div class="actions">
+        <button id="resume" type="button">Resume</button>
+        <button id="restart" type="button" class="ghost">Restart 9 behind</button>
+        <button id="quit" type="button" class="ghost">Leave the tower</button>
+      </div>
+      <p id="last-tx" class="small" hidden></p>
+    </div>
+  </div>
+
+  <div id="end" class="overlay" role="dialog" aria-modal="true" aria-labelledby="end-h" hidden>
+    <div class="sheet small-sheet">
+      <h2 id="end-h"></h2>
+      <p id="end-body" class="lede"></p>
+      <div id="submit-area" hidden>
+        <button id="submit" type="button">Put this run on the leaderboard</button>
+        <p id="submit-note" class="small"></p>
+      </div>
+      <div class="actions">
+        <button id="again" type="button">Climb again</button>
+        <button id="to-tower" type="button" class="ghost">Leave the tower</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
