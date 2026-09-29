@@ -2,7 +2,11 @@
 
 A parkour climb up a tower built from live Ethereum mainnet transactions. Every stone you land on is a real transaction, stacked in the order it was included. A new block lands about every 12 seconds, and a black floor rises twelve blocks under the head. You start 9 blocks behind. Reach the newest block before twelve confirmations close over you.
 
-![Standing on the landing for block #26,082,799, ten blocks behind the head, with stones spiraling up the tower](screenshot.png)
+![The day-mode title screen with the stone legend, controls and Start button beside the tower](screenshot-title.png)
+
+| Day mode | Night mode |
+|---|---|
+| ![The gold slime standing on the landing for block #26,083,653 in day mode, ten blocks behind the head](screenshot-day.png) | ![The purple slime on block #26,083,653 in night mode, nine blocks behind the head](screenshot-night.png) |
 
 It runs in the browser with Three.js and no build step.
 
