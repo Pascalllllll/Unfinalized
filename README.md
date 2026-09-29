@@ -14,7 +14,7 @@ It runs in the browser with Three.js and no build step.
 | Small grey stone | Contract call | A plain foothold |
 | Spring | Contract deployment | Throws you upward |
 | Sliding stone | Blob transaction (type 3) | Slides back and forth |
-| Landing | Block | Has the block number cut in; the newest one is orange |
+| Landing | Block | Has the block number cut in; the newest one is gold, or purple in night mode |
 
 Full blocks pack their stones close together. Quiet blocks leave long gaps, so how hard a stretch is depends on what mainnet was doing at that moment.
 
@@ -28,6 +28,7 @@ Full blocks pack their stones close together. Quiet blocks leave long gaps, so h
 | Look | Mouse | Drag on the right side |
 | Pause | Esc | Pause button in the HUD |
 | Sound | M | Sound button in the HUD |
+| Day / night theme | N | Night mode button in the HUD or title |
 
 Pausing doesn't stop the chain. Blocks keep landing and the floor keeps rising.
 
@@ -36,12 +37,12 @@ Pausing doesn't stop the chain. Blocks keep landing and the floor keeps rising.
 The game loads ES modules, so it needs to be served over HTTP. Opening `index.html` from disk won't work. Any static server will do:
 
 ```sh
-python3 -m http.server 8000
+python3 -m http.server 8001
 # or
-npx serve .
+npx serve . -l 8001
 ```
 
-Then open http://localhost:8000.
+Then open http://localhost:8001.
 
 Block data comes from public mainnet RPC endpoints (PublicNode, dRPC, 1RPC), tried in turn. If none of them answer, the title screen offers a synthetic chain that generates blocks with the same shape locally. Synthetic block numbers are prefixed with `S` and those runs can't go on the leaderboard.
 

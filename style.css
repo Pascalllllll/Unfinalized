@@ -1,15 +1,52 @@
-/* Light, fixed theme on purpose: the game's identity is pale stone in
-   overcast daylight, the opposite of the dark-neon look most chain games use. */
+/* Two themes, set on <html data-theme> before first paint: ivory stone with
+   gold by day, violet dusk with purple at night. The 3D colors that match
+   these live in src/theme.js. */
 :root {
-  --bone: #e8e3d8;
-  --paper: #f3efe7;
-  --ink: #1b1a17;
-  --ink-2: #4a463f;
-  --rule: rgba(27, 26, 23, 0.22);
-  --accent: #e4521b;
-  --accent-ink: #a8380c;
+  --bone: #f4efe3;
+  --paper: #fbf8f1;
+  --ink: #2a2418;
+  --ink-2: #5b5140;
+  --rule: rgba(42, 36, 24, 0.2);
+  --accent: #c99a1e;
+  --accent-hover: #b3870f;
+  --on-accent: #2a2418;
+  --accent-ink: #876210;
+  --btn-hover: #463d2c;
+  --ghost-hover: rgba(42, 36, 24, 0.07);
+  --chip-hover: #efe7d5;
+  --veil: rgba(244, 239, 227, 0.55);
+  --veil-strong: rgba(244, 239, 227, 0.82);
+  --stick-bg: rgba(251, 248, 241, 0.6);
+  --sw-transfer: #e6dcc6;
+  --sw-call: #c4b797;
+  --sw-blob: #9f8d69;
+  --sw-slab: #dacdb0;
+  --sw-spring-base: #2a2418;
   --font: "Inter", system-ui, sans-serif;
   color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bone: #17131f;
+  --paper: #211c2d;
+  --ink: #ece7f7;
+  --ink-2: #b4aac8;
+  --rule: rgba(236, 231, 247, 0.18);
+  --accent: #a77bff;
+  --accent-hover: #b994ff;
+  --on-accent: #140f1f;
+  --accent-ink: #c7a8ff;
+  --btn-hover: #d4cbe9;
+  --ghost-hover: rgba(236, 231, 247, 0.08);
+  --chip-hover: #2d2640;
+  --veil: rgba(23, 19, 31, 0.55);
+  --veil-strong: rgba(23, 19, 31, 0.82);
+  --stick-bg: rgba(33, 28, 45, 0.6);
+  --sw-transfer: #4a4163;
+  --sw-call: #352e4a;
+  --sw-blob: #5d4b8c;
+  --sw-slab: #3b3452;
+  --sw-spring-base: #07060b;
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -65,6 +102,9 @@ p { margin: 0; }
   gap: 20px;
 }
 
+.title-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }
+.title-head button { flex-shrink: 0; white-space: nowrap; }
+
 .lede { font-size: 1.05rem; line-height: 1.5; }
 .note { font-size: 0.92rem; color: var(--ink-2); }
 
@@ -92,11 +132,11 @@ p { margin: 0; }
 .ledger td:first-child { width: 34px; }
 
 .sw { display: inline-block; height: 12px; border: 1px solid var(--ink); margin-top: 4px; }
-.sw-transfer { width: 28px; background: #d9d3c6; }
-.sw-call { width: 14px; background: #a9a295; }
-.sw-spring { width: 18px; background: var(--accent); border-bottom: 5px solid var(--ink); height: 14px; }
-.sw-blob { width: 18px; background: #857e72; }
-.sw-slab { width: 30px; height: 14px; background: #cfc8bb; }
+.sw-transfer { width: 28px; background: var(--sw-transfer); }
+.sw-call { width: 14px; background: var(--sw-call); }
+.sw-spring { width: 18px; background: var(--accent); border-bottom: 5px solid var(--sw-spring-base); height: 14px; }
+.sw-blob { width: 18px; background: var(--sw-blob); }
+.sw-slab { width: 30px; height: 14px; background: var(--sw-slab); }
 
 .keys {
   margin: 0;
@@ -124,12 +164,14 @@ button {
   color: var(--paper);
   cursor: pointer;
 }
-button:hover:not(:disabled) { background: #34312c; }
+button:hover:not(:disabled) { background: var(--btn-hover); }
+#start, #again, #resume, #retry, #submit { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+#start:hover:not(:disabled), #again:hover, #resume:hover, #retry:hover, #submit:hover:not(:disabled) { background: var(--accent-hover); }
 button.ghost { background: transparent; color: var(--ink); }
-button.ghost:hover:not(:disabled) { background: rgba(27, 26, 23, 0.07); }
+button.ghost:hover:not(:disabled) { background: var(--ghost-hover); }
 button:disabled { opacity: 0.45; cursor: progress; }
 
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
 
 a { color: var(--accent-ink); }
 
@@ -169,8 +211,21 @@ a { color: var(--accent-ink); }
   align-items: center;
 }
 .chip-btn { pointer-events: auto; min-height: 44px; font-weight: 500; }
-.chip-btn:hover { background: #e6e0d4; }
-#dash.spent { background: transparent; color: var(--ink-2); border-style: dashed; }
+.chip-btn:hover { background: var(--chip-hover); }
+#dash.spent { color: var(--ink-2); }
+.chip:has(#dash.spent) { background: transparent; border-style: dashed; }
+/* Hotkey hints on the bottom bar. Hidden on touch, where there's no keyboard. */
+.hud-bar kbd {
+  margin-left: 8px;
+  padding: 1px 5px;
+  border: 1px solid var(--rule);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  font: 600 0.72rem/1.3 var(--font);
+  color: var(--ink-2);
+  background: var(--bone);
+}
+body.touch .hud-bar kbd { display: none; }
 #feed.warn { color: var(--accent-ink); }
 
 #toast {
@@ -201,7 +256,7 @@ a { color: var(--accent-ink); }
   inset: 0;
   display: grid;
   place-items: center;
-  background: rgba(232, 227, 216, 0.55);
+  background: var(--veil);
   padding: 16px;
 }
 .small-sheet {
@@ -213,6 +268,32 @@ a { color: var(--accent-ink); }
   flex-direction: column;
   gap: 16px;
 }
+/* Loading: covers the title while the first blocks arrive; the tower
+   stacks up faintly behind it. */
+body.loading #title { visibility: hidden; }
+#loading { background: var(--veil-strong); transition: opacity 0.3s ease; }
+#loading.done { opacity: 0; pointer-events: none; }
+.loading-sheet { width: min(420px, 100%); gap: 14px; }
+.meter {
+  position: relative;
+  height: 10px;
+  border: 1px solid var(--ink);
+  background: var(--bone);
+  overflow: hidden;
+}
+#loading-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: var(--accent);
+  transition: width 0.25s ease;
+}
+.meter.indeterminate #loading-fill { width: 30%; animation: meter-slide 1.2s ease-in-out infinite; }
+@keyframes meter-slide {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(340%); }
+}
+
 #submit-area { display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--ink); padding-top: 16px; }
 
 /* Leaderboard: same ruled-ledger table as the stone legend. */
@@ -240,7 +321,7 @@ a { color: var(--accent-ink); }
   height: 128px;
   border: 1px solid var(--ink);
   border-radius: 50%;
-  background: rgba(243, 239, 231, 0.6);
+  background: var(--stick-bg);
 }
 #knob {
   position: absolute;
@@ -286,5 +367,6 @@ body.touch #toast { bottom: auto; top: 16px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #toast { transition: none; }
+  #toast, #loading, #loading-fill { transition: none; }
+  .meter.indeterminate #loading-fill { animation: none; width: 100%; opacity: 0.35; }
 }

@@ -6,6 +6,7 @@ import { sfx } from './audio.js';
 import { wallet, short } from './wallet.js';
 import { BOARD } from './config.js';
 import { boardReady, loadBoard, submitRun } from './board.js';
+import { THEMES, currentTheme, setTheme, onSystemThemeChange } from './theme.js';
 
 const START_BEHIND = 9;
 const CONFIRMATIONS = 12;
@@ -29,8 +30,9 @@ scene.background = new THREE.Color(PALETTE.bone);
 scene.fog = new THREE.Fog(PALETTE.bone, 20, 75);
 const camera = new THREE.PerspectiveCamera(62, 1, 0.1, 400);
 
-scene.add(new THREE.HemisphereLight(0xfaf6ee, 0x8f897d, 2.2));
-const sun = new THREE.DirectionalLight(0xfffaf0, 1.8);
+const hemi = new THREE.HemisphereLight(PALETTE.sky, PALETTE.ground, PALETTE.hemi);
+scene.add(hemi);
+const sun = new THREE.DirectionalLight(PALETTE.sun, PALETTE.sunI);
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
 Object.assign(sun.shadow.camera, { left: -16, right: 16, top: 16, bottom: -16, near: 1, far: 80 });
@@ -41,7 +43,7 @@ scene.add(sun, sun.target);
 // The 12-confirmation line: a flat sheet of ink that rises under the tower.
 const inkSea = new THREE.Mesh(
   new THREE.CircleGeometry(220, 72),
-  new THREE.MeshStandardMaterial({ color: PALETTE.ink, roughness: 0.3, metalness: 0.1 }),
+  new THREE.MeshStandardMaterial({ color: PALETTE.sea, roughness: 0.3, metalness: 0.1 }),
 );
 inkSea.rotation.x = -Math.PI / 2;
 scene.add(inkSea);
@@ -49,6 +51,32 @@ scene.add(inkSea);
 const course = new Course(scene);
 const player = new Player(scene, sfx);
 player.group.visible = false;
+
+// Theme: light with gold by day, dark with purple at night.
+function applyTheme(name, remember) {
+  setTheme(name, remember);
+  Object.assign(PALETTE, THEMES[name]);
+  scene.background.set(PALETTE.bone);
+  scene.fog.color.set(PALETTE.bone);
+  hemi.color.set(PALETTE.sky);
+  hemi.groundColor.set(PALETTE.ground);
+  hemi.intensity = PALETTE.hemi;
+  sun.color.set(PALETTE.sun);
+  sun.intensity = PALETTE.sunI;
+  inkSea.material.color.set(PALETTE.sea);
+  course.applyTheme();
+  player.applyTheme();
+  for (const id of ['theme', 'theme-hud']) {
+    const btn = $(id);
+    (btn.querySelector('.lbl') || btn).textContent = name === 'dark' ? 'Day mode' : 'Night mode';
+    btn.setAttribute('aria-pressed', String(name === 'dark'));
+  }
+}
+function toggleTheme() {
+  applyTheme(currentTheme() === 'dark' ? 'light' : 'dark', true);
+}
+applyTheme(currentTheme(), false);
+onSystemThemeChange((name) => applyTheme(name, false));
 
 let chain = null;
 let state = 'loading';
@@ -84,17 +112,24 @@ async function boot(synthetic) {
   $('error-actions').hidden = true;
   $('start-actions').hidden = false;
   $('start').disabled = true;
-  setStatus(synthetic ? 'Building a synthetic chain…' : 'Reading Ethereum mainnet…');
+  const first = synthetic ? 'Building a synthetic chain…' : 'Reading Ethereum mainnet…';
+  setStatus(first);
+  showLoading(first);
   course.clear();
   floorTarget = floorY = -10;
   const c = synthetic ? new SyntheticChain() : new LiveChain();
   c.on('block', (b) => { if (chain === c) onBlock(b); });
   chain = c;
   try {
-    await c.start(WINDOW, (done, total) => setStatus(`Fetched ${done} of ${total} blocks from mainnet`));
+    await c.start(WINDOW, (done, total) => {
+      const text = synthetic ? `Generated ${done} of ${total} blocks` : `Fetched ${done} of ${total} blocks from mainnet`;
+      setStatus(text);
+      showLoading(text, done / total);
+    });
   } catch (err) {
     chain = null;
     state = 'error';
+    hideLoading();
     setStatus(`Couldn't reach a public Ethereum RPC (${err.message || 'network error'}). Check your connection, or play on generated blocks instead.`, true);
     $('start-actions').hidden = true;
     $('error-actions').hidden = false;
@@ -109,6 +144,33 @@ async function boot(synthetic) {
     : `Live from mainnet. Head is block #${fmt(chain.head)}.`);
   updateStartLabel();
   $('start').disabled = false;
+  hideLoading();
+  $('start').focus();
+}
+
+// Loading screen. With no fraction the bar slides back and forth.
+let loadingTimer = 0;
+function showLoading(text, fraction) {
+  clearTimeout(loadingTimer);
+  const el = $('loading'), bar = $('loading-bar');
+  el.hidden = false;
+  el.classList.remove('done');
+  el.setAttribute('aria-busy', 'true');
+  document.body.classList.add('loading');
+  $('loading-step').textContent = text;
+  const known = fraction !== undefined;
+  bar.classList.toggle('indeterminate', !known);
+  $('loading-fill').style.width = known ? `${Math.round(fraction * 100)}%` : '';
+  if (known) bar.setAttribute('aria-valuenow', Math.round(fraction * 100));
+  else bar.removeAttribute('aria-valuenow');
+}
+
+function hideLoading() {
+  const el = $('loading');
+  el.classList.add('done');
+  el.setAttribute('aria-busy', 'false');
+  document.body.classList.remove('loading');
+  loadingTimer = setTimeout(() => { el.hidden = true; }, reducedMotion ? 0 : 300);
 }
 
 function setStatus(text, error = false) {
@@ -204,6 +266,7 @@ function endRun(won) {
   const tag = (n) => (chain.synthetic ? `S${fmt(n)}` : `#${fmt(n)}`);
   if (won) {
     sfx.win();
+    player.cheer(60);
     $('end-h').textContent = 'You caught the head.';
     $('end-body').textContent = `Block ${tag(run.current)}, ${secs} seconds after starting on ${tag(run.startBlock)}. You stood on ${run.touched.size} transactions on the way up.`;
     setupSubmitArea();
@@ -330,7 +393,7 @@ async function connectWallet() {
     const addr = await wallet.connect();
     course.setWallet(addr);
     btn.textContent = `Connected ${short(addr)}`;
-    $('wallet-note').textContent = 'Transactions you send while playing show up as stones with orange edges when their block lands.';
+    $('wallet-note').textContent = 'Transactions you send while playing show up as stones with gold edges (purple at night) when their block lands.';
     refreshBoard();
     return addr;
   } catch (err) {
@@ -413,7 +476,8 @@ const touchState = { x: 0, y: 0, jump: false };
 
 addEventListener('keydown', (e) => {
   if (e.code === 'KeyM' && !e.target.closest?.('textarea')) toggleMute();
-  if (state === 'paused' && e.code === 'Escape') { resume(); return; }
+  if (e.code === 'KeyN' && !e.target.closest?.('textarea')) toggleTheme();
+  if (state === 'paused' && (e.code === 'Escape' || e.code === 'KeyP')) { resume(); return; }
   if ((state === 'won' || state === 'dead') && e.code === 'Escape') { toTitle(); return; }
   if (state !== 'playing') return;
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
@@ -421,8 +485,13 @@ addEventListener('keydown', (e) => {
     if (e.code === 'Space') edge.jump = true;
     if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') edge.dash = true;
   }
-  // Without pointer lock (touch keyboards, or lock refused) Esc still pauses.
-  if ((e.code === 'Escape' || e.code === 'KeyP') && !document.pointerLockElement) pause();
+  // P always pauses; Esc does too when the pointer isn't locked (with a lock,
+  // the browser eats Esc and pointerlockchange pauses instead).
+  if (e.code === 'KeyP' || (e.code === 'Escape' && !document.pointerLockElement)) {
+    if (document.pointerLockElement) document.exitPointerLock();
+    pause();
+    return;
+  }
   keys.add(e.code);
 });
 addEventListener('keyup', (e) => keys.delete(e.code));
@@ -525,7 +594,7 @@ addEventListener('mousemove', (e) => {
 
 function toggleMute() {
   const m = sfx.toggle();
-  $('mute').textContent = m ? 'Sound off' : 'Sound on';
+  $('mute').querySelector('.lbl').textContent = m ? 'Sound off' : 'Sound on';
   $('mute').setAttribute('aria-pressed', String(m));
 }
 
@@ -541,6 +610,8 @@ $('again').addEventListener('click', startRun);
 $('to-tower').addEventListener('click', toTitle);
 $('pause-btn').addEventListener('click', pause);
 $('mute').addEventListener('click', toggleMute);
+$('theme').addEventListener('click', toggleTheme);
+$('theme-hud').addEventListener('click', toggleTheme);
 $('submit').addEventListener('click', submitToBoard);
 $('board-refresh').addEventListener('click', refreshBoard);
 
@@ -632,6 +703,7 @@ requestAnimationFrame(frame);
 // Canvas labels need the serif loaded before the first slab is drawn.
 refreshBoard();
 
+showLoading('Carving the block numbers…');
 Promise.all([document.fonts.load('700 92px Inter'), document.fonts.load('500 34px Inter')])
   .catch(() => {})
   .finally(() => boot(false));

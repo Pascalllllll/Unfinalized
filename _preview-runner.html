@@ -1,0 +1,22 @@
+<!doctype html><meta charset="utf-8"><title>runner preview</title>
+<style>body{margin:0;display:flex}canvas{width:50vw;height:100vh}</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","./src/player.js":"./src/player.js?p=12","./src/theme.js":"./src/theme.js?p=12"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { THEMES } from './src/theme.js';
+import { PALETTE } from './src/course.js';
+import { Player } from './src/player.js';
+for (const name of ['light', 'dark']) {
+  Object.assign(PALETTE, THEMES[name]);
+  const canvas = document.createElement('canvas'); document.body.append(canvas);
+  const r = new THREE.WebGLRenderer({ canvas, antialias: true }); r.setSize(innerWidth / 2, innerHeight, false);
+  const scene = new THREE.Scene(); scene.background = new THREE.Color(PALETTE.bone);
+  scene.add(new THREE.HemisphereLight(PALETTE.sky, PALETTE.ground, PALETTE.hemi));
+  const sun = new THREE.DirectionalLight(PALETTE.sun, PALETTE.sunI); sun.position.set(3, 6, 5); scene.add(sun);
+  const cam = new THREE.PerspectiveCamera(30, (innerWidth / 2) / innerHeight, 0.1, 50); cam.position.set(0.8, 1.1, 3.2); cam.lookAt(0, 0.4, 0);
+  const p = new Player(scene, {}); p.grounded = true; p.facing = 0.3;
+  let last = performance.now();
+  (function f(now) { const dt = Math.min(0.05, (now - last) / 1000); last = now; p.sync(dt); r.render(scene, cam); requestAnimationFrame(f); })(last);
+  window['p_' + name] = p;
+}
+</script>

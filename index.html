@@ -8,26 +8,54 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="style.css">
+  <script>
+    // Set the theme before first paint so night mode doesn't flash light.
+    try {
+      const t = localStorage.getItem('unfinalized-theme');
+      document.documentElement.dataset.theme = t === 'light' || t === 'dark' ? t
+        : matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    } catch { document.documentElement.dataset.theme = 'light'; }
+  </script>
+  <link rel="stylesheet" href="style.css?v=6">
   <script type="importmap">
-    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js" } }
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+        "./src/course.js": "./src/course.js?v=4",
+        "./src/player.js": "./src/player.js?v=10",
+        "./src/theme.js": "./src/theme.js?v=8"
+      }
+    }
   </script>
 </head>
-<body>
+<body class="loading">
   <canvas id="scene" aria-label="The tower"></canvas>
 
+  <div id="loading" class="overlay" aria-busy="true">
+    <div class="sheet small-sheet loading-sheet">
+      <p class="label">Unfinalized</p>
+      <h2>Building the tower</h2>
+      <div id="loading-bar" class="meter indeterminate" role="progressbar" aria-label="Tower progress" aria-valuemin="0" aria-valuemax="100"><span id="loading-fill"></span></div>
+      <p id="loading-step" class="status" role="status" aria-live="polite">Loading the 3D engine…</p>
+      <p class="small">Every stone is a real mainnet transaction, so the newest blocks have to arrive before you can climb.</p>
+    </div>
+  </div>
+
   <section id="title" class="sheet" aria-labelledby="title-h">
-    <h1 id="title-h">Unfinalized</h1>
+    <div class="title-head">
+      <h1 id="title-h">Unfinalized</h1>
+      <button id="theme" type="button" class="ghost small-btn" aria-pressed="false">Night mode</button>
+    </div>
     <p class="lede">Every stone in this tower is a real Ethereum transaction, stacked in the order it landed on mainnet. A new block arrives about every 12 seconds. Climb to the newest one before twelve confirmations close over you.</p>
 
     <table class="ledger">
       <caption>What the stones are</caption>
       <tbody>
         <tr><td><span class="sw sw-transfer" aria-hidden="true"></span></td><th scope="row">ETH transfer</th><td>Wider the more ETH moved</td></tr>
-        <tr><td><span class="sw sw-call" aria-hidden="true"></span></td><th scope="row">Contract call</th><td>Small and grey</td></tr>
+        <tr><td><span class="sw sw-call" aria-hidden="true"></span></td><th scope="row">Contract call</th><td>Small and dark</td></tr>
         <tr><td><span class="sw sw-spring" aria-hidden="true"></span></td><th scope="row">Contract deployment</th><td>Throws you upward</td></tr>
         <tr><td><span class="sw sw-blob" aria-hidden="true"></span></td><th scope="row">Blob transaction</th><td>Slides back and forth</td></tr>
-        <tr><td><span class="sw sw-slab" aria-hidden="true"></span></td><th scope="row">Block</th><td>A landing with its number cut in. The newest one is orange.</td></tr>
+        <tr><td><span class="sw sw-slab" aria-hidden="true"></span></td><th scope="row">Block</th><td>A landing with its number cut in. The newest one is gold, or purple at night.</td></tr>
       </tbody>
     </table>
     <p class="note">Full blocks pack their stones close together. Quiet blocks leave long gaps. The black floor is the 12-confirmation line: it sits twelve blocks under the newest block and rises every time one lands.</p>
@@ -37,8 +65,9 @@
       <div><dt>Jump</dt><dd>Space, hold for height</dd></div>
       <div><dt>Dash</dt><dd>Shift or right click, once per jump</dd></div>
       <div><dt>Look</dt><dd>Mouse</dd></div>
-      <div><dt>Pause</dt><dd>Esc</dd></div>
+      <div><dt>Pause</dt><dd>P or Esc</dd></div>
       <div><dt>Sound</dt><dd>M</dd></div>
+      <div><dt>Theme</dt><dd>N</dd></div>
     </dl>
 
     <p id="status" class="status" role="status" aria-live="polite">Reading Ethereum mainnet…</p>
@@ -78,11 +107,12 @@
       <p id="line-info" class="mono small"></p>
     </div>
     <div class="hud-bar">
-      <span id="dash" class="chip">Dash ready</span>
+      <span class="chip"><span id="dash">Dash ready</span><kbd>Shift</kbd></span>
       <span id="clock" class="chip mono">0:00.0</span>
       <span id="feed" class="chip mono">Live mainnet</span>
-      <button id="mute" type="button" class="chip-btn" aria-pressed="false">Sound on</button>
-      <button id="pause-btn" type="button" class="chip-btn">Pause</button>
+      <button id="mute" type="button" class="chip-btn" aria-pressed="false" aria-keyshortcuts="M"><span class="lbl">Sound on</span><kbd>M</kbd></button>
+      <button id="theme-hud" type="button" class="chip-btn" aria-pressed="false" aria-keyshortcuts="N"><span class="lbl">Night mode</span><kbd>N</kbd></button>
+      <button id="pause-btn" type="button" class="chip-btn" aria-keyshortcuts="P"><span class="lbl">Pause</span><kbd>P</kbd></button>
     </div>
   </div>
 
@@ -124,6 +154,6 @@
     </div>
   </div>
 
-  <script type="module" src="src/main.js"></script>
+  <script type="module" src="src/main.js?v=6"></script>
 </body>
 </html>

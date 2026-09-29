@@ -1,13 +1,8 @@
 import * as THREE from 'three';
+import { THEMES, currentTheme } from './theme.js';
 
-export const PALETTE = {
-  bone: 0xe8e3d8,
-  stone: 0xd9d3c6,
-  call: 0xa9a295,
-  blob: 0x857e72,
-  ink: 0x1b1a17,
-  accent: 0xe4521b,
-};
+// Filled from the active theme; applyTheme() swaps it in place.
+export const PALETTE = { ...THEMES[currentTheme()] };
 
 export const CORE_R = 3.2;
 const RING_R = 8.4;
@@ -63,9 +58,9 @@ function labelTexture(block) {
   const c = document.createElement('canvas');
   c.width = 512; c.height = 384;
   const g = c.getContext('2d');
-  g.fillStyle = '#e1dbcf';
+  g.fillStyle = PALETTE.label;
   g.fillRect(0, 0, c.width, c.height);
-  g.fillStyle = '#1b1a17';
+  g.fillStyle = PALETTE.labelInk;
   g.textBaseline = 'alphabetic';
   const prefix = block.synthetic ? 'S' : '#';
   const label = prefix + block.number.toLocaleString('en-US');
@@ -106,13 +101,13 @@ export class Course {
       blob: mat(PALETTE.blob),
       springBase: mat(PALETTE.ink, 0.6),
       springTop: mat(PALETTE.accent, 0.7),
-      slabSide: mat(0xcfc8bb),
+      slabSide: mat(PALETTE.slabSide),
       accent: mat(PALETTE.accent, 0.7),
-      core: mat(0xdcd6ca, 1),
+      core: mat(PALETTE.core, 1),
     };
-    this.lineMat = new THREE.LineBasicMaterial({ color: PALETTE.ink, transparent: true, opacity: 0.55 });
+    this.lineMat = new THREE.LineBasicMaterial({ color: PALETTE.line, transparent: true, opacity: PALETTE.lineOpacity });
     this.mineLineMat = new THREE.LineBasicMaterial({ color: PALETTE.accent });
-    this.ringMat = new THREE.LineBasicMaterial({ color: PALETTE.ink, transparent: true, opacity: 0.7 });
+    this.ringMat = new THREE.LineBasicMaterial({ color: PALETTE.line, transparent: true, opacity: PALETTE.lineOpacity + 0.15 });
 
     const ringPts = [];
     for (let i = 0; i <= 96; i++) {
@@ -121,13 +116,39 @@ export class Course {
     }
     this.ringGeo = new THREE.BufferGeometry().setFromPoints(ringPts);
 
-    // The goal marker: a thin orange line standing up from the newest block.
+    // The goal marker: a thin accent-colored line standing up from the newest block.
     this.beacon = new THREE.Mesh(
       new THREE.CylinderGeometry(0.07, 0.07, 120, 8),
       new THREE.MeshBasicMaterial({ color: PALETTE.accent, fog: false }),
     );
     this.beacon.visible = false;
     scene.add(this.beacon);
+  }
+
+  // Recolors everything already built, including the block-number labels.
+  applyTheme() {
+    const m = this.mats;
+    m.transfer.color.set(PALETTE.stone);
+    m.call.color.set(PALETTE.call);
+    m.blob.color.set(PALETTE.blob);
+    m.springBase.color.set(PALETTE.ink);
+    m.springTop.color.set(PALETTE.accent);
+    m.slabSide.color.set(PALETTE.slabSide);
+    m.accent.color.set(PALETTE.accent);
+    m.core.color.set(PALETTE.core);
+    this.lineMat.color.set(PALETTE.line);
+    this.lineMat.opacity = PALETTE.lineOpacity;
+    this.mineLineMat.color.set(PALETTE.accent);
+    this.ringMat.color.set(PALETTE.line);
+    this.ringMat.opacity = PALETTE.lineOpacity + 0.15;
+    this.beacon.material.color.set(PALETTE.accent);
+    for (const rec of this.records) {
+      rec.textures.forEach((t) => t.dispose());
+      const tex = labelTexture(rec.block);
+      rec.textures = [tex];
+      rec.topMat.map = tex;
+      rec.topMat.needsUpdate = true;
+    }
   }
 
   makeBox(rec, { theta, radius, topY, w, h, d, kind, tx, mats }) {
