@@ -16,7 +16,7 @@
         : matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     } catch { document.documentElement.dataset.theme = 'light'; }
   </script>
-  <link rel="stylesheet" href="style.css?v=8">
+  <link rel="stylesheet" href="style.css?v=9">
   <script type="importmap">
     {
       "imports": {
@@ -47,7 +47,6 @@
       <button id="theme" type="button" class="ghost small-btn" aria-pressed="false">Night mode</button>
     </div>
     <p class="lede">Every stone in this tower is a real Ethereum transaction, stacked in the order it landed on mainnet. A new block arrives about every 12 seconds. Climb to the newest one before twelve confirmations close over you.</p>
-    <p id="touch-note" class="touch-note" hidden><strong>Plays best on a computer.</strong> The climb is made for a keyboard and mouse. You can still play here with the on-screen stick and buttons, but precise jumps are harder to land.</p>
 
     <table class="ledger">
       <caption>What the stones are</caption>
@@ -71,6 +70,7 @@
       <div><dt>Theme</dt><dd>N</dd></div>
     </dl>
 
+    <p id="touch-note" class="touch-note" hidden><strong>Plays best on a computer.</strong> The climb is made for a keyboard and mouse. You can still play here with the on-screen stick and buttons, but precise jumps are harder to land.</p>
     <p id="status" class="status" role="status" aria-live="polite">Reading Ethereum mainnet…</p>
     <div id="error-actions" class="actions" hidden>
       <button id="retry" type="button">Try mainnet again</button>
@@ -96,32 +96,35 @@
     </section>
   </section>
 
+  <!-- Before #hud so the HUD's Pause button paints above the stick zone. -->
+  <div id="touch" hidden>
+    <div id="stick-zone"><div id="stick" aria-hidden="true"><div id="knob"></div></div></div>
+    <div id="look-zone"></div>
+    <button id="t-dash" type="button">Dash</button>
+    <button id="t-jump" type="button">Jump</button>
+  </div>
+
   <div id="hud" hidden>
-    <div class="panel hud-where">
-      <p class="label">Standing on</p>
-      <p id="where" class="where">Nothing yet</p>
-      <p id="where-detail" class="mono small"></p>
+    <div class="hud-left">
+      <div class="panel hud-where">
+        <p class="label">Standing on</p>
+        <p id="where" class="where">Nothing yet</p>
+        <p id="where-detail" class="mono small"></p>
+      </div>
+      <div class="hud-bar">
+        <button id="pause-btn" type="button" class="chip-btn" aria-keyshortcuts="P"><span class="lbl">Pause</span><kbd>P</kbd></button>
+        <span class="chip"><span id="dash">Dash ready</span><kbd>Shift</kbd></span>
+        <span id="clock" class="chip mono">0:00.0</span>
+        <span id="feed" class="chip mono">Live mainnet</span>
+        <button id="mute" type="button" class="chip-btn" aria-pressed="false" aria-keyshortcuts="M"><span class="lbl">Sound on</span><kbd>M</kbd></button>
+        <button id="theme-hud" type="button" class="chip-btn" aria-pressed="false" aria-keyshortcuts="N"><span class="lbl">Night mode</span><kbd>N</kbd></button>
+      </div>
     </div>
     <div class="panel hud-gap">
       <p id="behind" class="big">9</p>
       <p id="behind-label" class="label">blocks behind the head</p>
       <p id="line-info" class="mono small"></p>
     </div>
-    <div class="hud-bar">
-      <span class="chip"><span id="dash">Dash ready</span><kbd>Shift</kbd></span>
-      <span id="clock" class="chip mono">0:00.0</span>
-      <span id="feed" class="chip mono">Live mainnet</span>
-      <button id="mute" type="button" class="chip-btn" aria-pressed="false" aria-keyshortcuts="M"><span class="lbl">Sound on</span><kbd>M</kbd></button>
-      <button id="theme-hud" type="button" class="chip-btn" aria-pressed="false" aria-keyshortcuts="N"><span class="lbl">Night mode</span><kbd>N</kbd></button>
-      <button id="pause-btn" type="button" class="chip-btn" aria-keyshortcuts="P"><span class="lbl">Pause</span><kbd>P</kbd></button>
-    </div>
-  </div>
-
-  <div id="touch" hidden>
-    <div id="stick-zone"><div id="stick" aria-hidden="true"><div id="knob"></div></div></div>
-    <div id="look-zone"></div>
-    <button id="t-dash" type="button">Dash</button>
-    <button id="t-jump" type="button">Jump</button>
   </div>
 
   <div id="toast" role="status" aria-live="polite"></div>

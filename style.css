@@ -237,6 +237,24 @@ a { color: var(--accent-ink); }
 body.touch .hud-bar kbd { display: none; }
 /* The on-screen controller (stick, Jump, Dash, Pause) is for touch only. Keyboards pause with P or Esc. */
 body:not(.touch) #pause-btn { display: none; }
+
+/* Desktop: the wrapper steps aside and its panels keep their own corners. */
+.hud-left { display: contents; }
+/* Touch: Standing on, then Pause and the run chips stacked in the top-left
+   corner, clear of the stick. Sound and theme stay off the play screen. */
+body.touch .hud-left {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  max-width: min(380px, calc(100vw - 180px));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+body.touch .hud-where, body.touch .hud-bar { position: static; max-width: none; }
+body.touch #mute, body.touch #theme-hud { display: none; }
+body.touch #pause-btn { min-height: 48px; min-width: 48px; padding: 0 16px; font-weight: 600; }
 #feed.warn { color: var(--accent-ink); }
 
 #toast {
@@ -353,7 +371,6 @@ body.loading #title { visibility: hidden; }
 }
 #t-jump { right: 24px; bottom: 88px; }
 #t-dash { right: 116px; bottom: 60px; background: var(--paper); color: var(--ink); }
-body.touch .hud-bar { bottom: auto; top: 118px; left: 16px; }
 body.touch #toast { bottom: auto; top: 16px; }
 
 @media (max-width: 640px) {
@@ -373,7 +390,7 @@ body.touch #toast { bottom: auto; top: 16px; }
   .hud-gap { right: 10px; top: 10px; min-width: 0; max-width: calc(40vw - 10px); padding: 8px 10px; }
   .big { font-size: 2.6rem; }
   .hud-bar { left: 10px; right: 10px; }
-  body.touch .hud-bar { top: auto; bottom: 232px; left: 10px; }
+  body.touch .hud-left { top: 10px; left: 10px; max-width: calc(60vw - 20px); }
   .actions button { flex: 1 1 auto; }
 }
 
