@@ -2,6 +2,8 @@
 
 A parkour climb up a tower built from live Ethereum mainnet transactions. Every stone you land on is a real transaction, stacked in the order it was included. A new block lands about every 12 seconds, and a black floor rises twelve blocks under the head. You start 9 blocks behind. Reach the newest block before twelve confirmations close over you.
 
+**Play it: [unfinalized.vercel.app](https://unfinalized.vercel.app)**
+
 ![The day-mode title screen with the stone legend, controls and Start button beside the tower](screenshot-title.png)
 
 | Day mode | Night mode |
@@ -30,13 +32,15 @@ Full blocks pack their stones close together. Quiet blocks leave long gaps, so h
 | Jump | Space, hold for height | Jump button |
 | Dash | Shift or right click, once per jump | Dash button |
 | Look | Mouse | Drag on the right side |
-| Pause | Esc | Pause button in the HUD |
+| Pause | P or Esc | Pause button in the HUD |
 | Sound | M | Sound button in the HUD |
 | Day / night theme | N | Night mode button in the HUD or title |
 
+The on-screen controls (stick, Jump, Dash and Pause) only appear on touch devices. On a computer you play with the keyboard and mouse.
+
 Pausing doesn't stop the chain. Blocks keep landing and the floor keeps rising.
 
-## Running it
+## Running it locally
 
 The game loads ES modules, so it needs to be served over HTTP. Opening `index.html` from disk won't work. Any static server will do:
 
