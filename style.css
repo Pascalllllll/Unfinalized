@@ -226,6 +226,8 @@ a { color: var(--accent-ink); }
   background: var(--bone);
 }
 body.touch .hud-bar kbd { display: none; }
+/* The on-screen controller (stick, Jump, Dash, Pause) is for touch only. Keyboards pause with P or Esc. */
+body:not(.touch) #pause-btn { display: none; }
 #feed.warn { color: var(--accent-ink); }
 
 #toast {
