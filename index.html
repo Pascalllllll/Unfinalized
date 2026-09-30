@@ -16,7 +16,7 @@
         : matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     } catch { document.documentElement.dataset.theme = 'light'; }
   </script>
-  <link rel="stylesheet" href="style.css?v=7">
+  <link rel="stylesheet" href="style.css?v=8">
   <script type="importmap">
     {
       "imports": {
@@ -47,6 +47,7 @@
       <button id="theme" type="button" class="ghost small-btn" aria-pressed="false">Night mode</button>
     </div>
     <p class="lede">Every stone in this tower is a real Ethereum transaction, stacked in the order it landed on mainnet. A new block arrives about every 12 seconds. Climb to the newest one before twelve confirmations close over you.</p>
+    <p id="touch-note" class="touch-note" hidden><strong>Plays best on a computer.</strong> The climb is made for a keyboard and mouse. You can still play here with the on-screen stick and buttons, but precise jumps are harder to land.</p>
 
     <table class="ledger">
       <caption>What the stones are</caption>
@@ -154,6 +155,6 @@
     </div>
   </div>
 
-  <script type="module" src="src/main.js?v=6"></script>
+  <script type="module" src="src/main.js?v=7"></script>
 </body>
 </html>

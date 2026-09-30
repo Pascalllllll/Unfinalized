@@ -16,7 +16,10 @@ const $ = (id) => document.getElementById(id);
 const fmt = (n) => n.toLocaleString('en-US');
 const isTouch = matchMedia('(pointer: coarse)').matches;
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-if (isTouch) document.body.classList.add('touch');
+if (isTouch) {
+  document.body.classList.add('touch');
+  $('touch-note').hidden = false;
+}
 
 // Scene
 const canvas = $('scene');

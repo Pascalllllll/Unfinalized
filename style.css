@@ -107,6 +107,15 @@ p { margin: 0; }
 
 .lede { font-size: 1.05rem; line-height: 1.5; }
 .note { font-size: 0.92rem; color: var(--ink-2); }
+/* Shown only on touch devices, where the keyboard-and-mouse climb is harder. */
+.touch-note {
+  font-size: 0.92rem;
+  color: var(--ink-2);
+  padding: 12px 14px;
+  background: var(--bone);
+  border: 1px solid var(--rule);
+}
+.touch-note strong { color: var(--ink); font-weight: 600; }
 
 .ledger {
   width: 100%;
