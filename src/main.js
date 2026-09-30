@@ -6,6 +6,7 @@ import { sfx } from './audio.js';
 import { wallet, short } from './wallet.js';
 import { BOARD } from './config.js';
 import { boardReady, loadBoard, submitRun } from './board.js';
+import { loadLocal, saveLocal, lastName, rememberName } from './local-board.js';
 import { THEMES, currentTheme, setTheme, onSystemThemeChange } from './theme.js';
 
 const START_BEHIND = 9;
@@ -69,7 +70,7 @@ function applyTheme(name, remember) {
   inkSea.material.color.set(PALETTE.sea);
   course.applyTheme();
   player.applyTheme();
-  for (const id of ['theme', 'theme-hud']) {
+  for (const id of ['theme', 'theme-load', 'theme-hud']) {
     const btn = $(id);
     (btn.querySelector('.lbl') || btn).textContent = name === 'dark' ? 'Day mode' : 'Night mode';
     btn.setAttribute('aria-pressed', String(name === 'dark'));
@@ -136,7 +137,7 @@ async function boot(synthetic) {
     setStatus(`Couldn't reach a public Ethereum RPC (${err.message || 'network error'}). Check your connection, or play on generated blocks instead.`, true);
     $('start-actions').hidden = true;
     $('error-actions').hidden = false;
-    $('retry').focus();
+    focusTitle('retry');
     return;
   }
   updateFloorTarget();
@@ -148,7 +149,14 @@ async function boot(synthetic) {
   updateStartLabel();
   $('start').disabled = false;
   hideLoading();
-  $('start').focus();
+  focusTitle('start');
+}
+
+// Focus a title button without scrolling the menu down to it; the menu
+// always opens at the top.
+function focusTitle(id) {
+  $(id).focus({ preventScroll: true });
+  $('title').scrollTop = 0;
 }
 
 // Loading screen. With no fraction the bar slides back and forth.
@@ -259,7 +267,7 @@ function toTitle() {
   $('touch').hidden = true;
   $('title').hidden = false;
   updateStartLabel();
-  $('start').focus();
+  focusTitle('start');
 }
 
 function endRun(won) {
@@ -282,7 +290,8 @@ function endRun(won) {
   }
   $('touch').hidden = true;
   $('end').hidden = false;
-  $('again').focus();
+  if (!$('name-form').hidden) $('name-input').focus();
+  else $('again').focus();
 }
 
 function setupSubmitArea() {
@@ -290,12 +299,17 @@ function setupSubmitArea() {
   area.hidden = false;
   btn.disabled = false;
   btn.hidden = true;
-  if (chain.synthetic) {
-    note.textContent = 'Runs on the synthetic chain can\'t go on the leaderboard: those blocks don\'t exist on mainnet.';
+  $('name-form').hidden = true;
+  if (!boardReady()) {
+    $('name-form').hidden = false;
+    $('name-save').disabled = false;
+    $('name-input').disabled = false;
+    $('name-input').value = lastName();
+    note.textContent = `Your time, ${run.time.toFixed(1)} seconds, is saved with your name on the leaderboard in this browser.`;
     return;
   }
-  if (!boardReady()) {
-    note.textContent = 'This copy of the game has no leaderboard set up yet.';
+  if (chain.synthetic) {
+    note.textContent = 'Runs on the synthetic chain can\'t go on the leaderboard: those blocks don\'t exist on mainnet.';
     return;
   }
   if (!wallet.available()) {
@@ -341,15 +355,58 @@ async function submitToBoard() {
   }
 }
 
+function saveName(e) {
+  e.preventDefault();
+  const name = $('name-input').value.trim().replace(/\s+/g, ' ');
+  if (!name) return;
+  rememberName(name);
+  const b = run.caught;
+  const rank = saveLocal({
+    name,
+    timeMs: Math.round(run.time * 1000),
+    block: b ? `${chain.synthetic ? 'S' : '#'}${fmt(b.number)}` : '',
+    stones: run.touched.size,
+    at: Date.now(),
+  });
+  $('name-input').disabled = true;
+  $('name-save').disabled = true;
+  $('submit-note').textContent = rank < 0
+    ? 'This browser blocked saving, so the run wasn\'t recorded.'
+    : `Saved. ${name} is number ${rank + 1} on the leaderboard.`;
+  refreshBoard();
+  $('again').focus();
+}
+
 // Leaderboard on the title sheet
+
+function showLocalBoard() {
+  const status = $('board-status'), table = $('board-table');
+  $('board-refresh').hidden = true;
+  $('board-who').textContent = 'Name';
+  status.classList.remove('error');
+  const rows = loadLocal().slice(0, 10);
+  const body = $('board-rows');
+  body.textContent = '';
+  rows.forEach((r, i) => {
+    const tr = document.createElement('tr');
+    [String(i + 1), r.name, `${(r.timeMs / 1000).toFixed(1)}s`, r.block].forEach((text) => {
+      const td = document.createElement('td');
+      td.textContent = text;
+      tr.append(td);
+    });
+    body.append(tr);
+  });
+  table.hidden = rows.length === 0;
+  status.textContent = rows.length
+    ? 'Fastest climbs saved in this browser.'
+    : 'No runs yet. Catch the head and put your name first.';
+}
 
 let boardLoading = false;
 async function refreshBoard() {
   const status = $('board-status'), table = $('board-table'), refresh = $('board-refresh');
   if (!boardReady()) {
-    status.textContent = 'No leaderboard is set up for this copy of the game. Whoever hosts it deploys the contract with deploy.html and puts its address in src/config.js.';
-    table.hidden = true;
-    refresh.hidden = true;
+    showLocalBoard();
     return;
   }
   if (boardLoading) return;
@@ -478,8 +535,9 @@ const edge = { jump: false, dash: false };
 const touchState = { x: 0, y: 0, jump: false };
 
 addEventListener('keydown', (e) => {
-  if (e.code === 'KeyM' && !e.target.closest?.('textarea')) toggleMute();
-  if (e.code === 'KeyN' && !e.target.closest?.('textarea')) toggleTheme();
+  const typing = e.target.closest?.('input, textarea');
+  if (e.code === 'KeyM' && !typing) toggleMute();
+  if (e.code === 'KeyN' && !typing) toggleTheme();
   if (state === 'paused' && (e.code === 'Escape' || e.code === 'KeyP')) { resume(); return; }
   if ((state === 'won' || state === 'dead') && e.code === 'Escape') { toTitle(); return; }
   if (state !== 'playing') return;
@@ -614,6 +672,8 @@ $('to-tower').addEventListener('click', toTitle);
 $('pause-btn').addEventListener('click', pause);
 $('mute').addEventListener('click', toggleMute);
 $('theme').addEventListener('click', toggleTheme);
+$('theme-load').addEventListener('click', toggleTheme);
+$('name-form').addEventListener('submit', saveName);
 $('theme-hud').addEventListener('click', toggleTheme);
 $('submit').addEventListener('click', submitToBoard);
 $('board-refresh').addEventListener('click', refreshBoard);

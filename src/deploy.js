@@ -14,7 +14,7 @@ $('deploy').textContent = `Deploy to ${BOARD.chainName}`;
 
 if (boardReady()) {
   $('existing').hidden = false;
-  $('existing').textContent = `This copy already points at ${BOARD.address}. Deploying again makes a new, empty board; the old one stays on chain.`;
+  $('existing').textContent = `The game already points at ${BOARD.address}. Deploying again makes a new, empty board; the old one stays on chain.`;
 }
 
 if (!wallet.available()) {

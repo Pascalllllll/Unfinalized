@@ -324,6 +324,21 @@ body.loading #title { visibility: hidden; }
 }
 
 #submit-area { display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--ink); padding-top: 16px; }
+.name-form { display: flex; flex-direction: column; gap: 6px; }
+.name-form label { font-size: 0.85rem; color: var(--ink-2); }
+.name-row { display: flex; gap: 8px; }
+.name-row input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 12px;
+  font: inherit;
+  color: var(--ink);
+  background: var(--bone);
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+}
+.name-row input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 /* Leaderboard: same ruled-ledger table as the stone legend. */
 .board { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--ink); padding-top: 16px; }

@@ -16,7 +16,7 @@
         : matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     } catch { document.documentElement.dataset.theme = 'light'; }
   </script>
-  <link rel="stylesheet" href="style.css?v=9">
+  <link rel="stylesheet" href="style.css?v=10">
   <script type="importmap">
     {
       "imports": {
@@ -33,7 +33,10 @@
 
   <div id="loading" class="overlay" aria-busy="true">
     <div class="sheet small-sheet loading-sheet">
-      <p class="label">Unfinalized</p>
+      <div class="title-head">
+        <p class="label">Unfinalized</p>
+        <button id="theme-load" type="button" class="ghost small-btn" aria-pressed="false">Night mode</button>
+      </div>
       <h2>Building the tower</h2>
       <div id="loading-bar" class="meter indeterminate" role="progressbar" aria-label="Tower progress" aria-valuemin="0" aria-valuemax="100"><span id="loading-fill"></span></div>
       <p id="loading-step" class="status" role="status" aria-live="polite">Loading the 3D engine…</p>
@@ -89,7 +92,7 @@
       </div>
       <p id="board-status" class="small" role="status" aria-live="polite">Loading the board…</p>
       <table id="board-table" class="ledger" hidden>
-        <thead><tr><th scope="col">#</th><th scope="col">Wallet</th><th scope="col">Time</th><th scope="col">Caught</th></tr></thead>
+        <thead><tr><th scope="col">#</th><th scope="col" id="board-who">Wallet</th><th scope="col">Time</th><th scope="col">Caught</th></tr></thead>
         <tbody id="board-rows"></tbody>
       </table>
       <p id="board-where" class="small" hidden></p>
@@ -148,6 +151,13 @@
       <h2 id="end-h"></h2>
       <p id="end-body" class="lede"></p>
       <div id="submit-area" hidden>
+        <form id="name-form" class="name-form" hidden>
+          <label for="name-input">Your name for the leaderboard</label>
+          <div class="name-row">
+            <input id="name-input" type="text" maxlength="24" autocomplete="nickname" required>
+            <button id="name-save" type="submit">Save</button>
+          </div>
+        </form>
         <button id="submit" type="button">Put this run on the leaderboard</button>
         <p id="submit-note" class="small"></p>
       </div>
@@ -158,6 +168,6 @@
     </div>
   </div>
 
-  <script type="module" src="src/main.js?v=7"></script>
+  <script type="module" src="src/main.js?v=9"></script>
 </body>
 </html>

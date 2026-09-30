@@ -52,9 +52,11 @@ npx serve . -l 8001
 
 Then open http://localhost:8001.
 
-Block data comes from public mainnet RPC endpoints (PublicNode, dRPC, 1RPC), tried in turn. If none of them answer, the title screen offers a synthetic chain that generates blocks with the same shape locally. Synthetic block numbers are prefixed with `S` and those runs can't go on the leaderboard.
+Block data comes from public mainnet RPC endpoints (PublicNode, dRPC, 1RPC), tried in turn. If none of them answer, the title screen offers a synthetic chain that generates blocks with the same shape locally. Synthetic block numbers are prefixed with `S` and those runs can't go on the on-chain leaderboard.
 
 ## Wallet and leaderboard
+
+Until an on-chain board is deployed (see below), the game keeps a name-based leaderboard in the browser: after catching the head you type your name and the run is saved with its time and block. It lives in `localStorage`, so each browser has its own list.
 
 Connecting a wallet is optional. With one connected, your own mainnet transactions are highlighted in the tower, and a finished run can be submitted to the leaderboard.
 
@@ -69,7 +71,7 @@ Every submission logs the caught block's hash, so anyone can check it against ma
 
 ### Deploying your own board
 
-`src/config.js` ships with an empty address, so the board stays hidden until you deploy one:
+`src/config.js` ships with an empty address, so the game uses the in-browser leaderboard until you deploy one:
 
 1. Get some Base Sepolia test ETH from a faucet.
 2. Serve the project and open `deploy.html`.
@@ -96,6 +98,7 @@ src/
   board.js               leaderboard reads and writes (viem, loaded on demand)
   board-artifact.js      compiled contract ABI and bytecode
   config.js              leaderboard address and chain
+  local-board.js         in-browser leaderboard used when no contract is set
   deploy.js              logic for deploy.html
 ```
 
